@@ -22,8 +22,8 @@ function NewsCard({ card }) {
         </p>
 
         <div className="flex justify-between items-center text-gray-500 mt-4 text-xs">
-          <span>✍ {card.author}</span>
-          <span>📅 {card.date}</span>
+          <span>{card.author}</span>
+          <span>{card.date}</span>
         </div>
 
         <div className="mt-4">
