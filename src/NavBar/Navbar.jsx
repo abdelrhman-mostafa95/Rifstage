@@ -7,7 +7,7 @@ function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full z-50 container mx-auto p-4 flex justify-between items-center bg-[#080808] text-white">
+      <nav className="fixed top-0 left-0 w-full z-50 p-4 flex justify-between items-center bg-[#080808] text-white">
         <div>
           <img
             src="rifstage-logo.png"

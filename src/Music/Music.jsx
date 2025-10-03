@@ -3,6 +3,7 @@ import AllMusicCards from "./AllMusicCards";
 function Music() {
   const data = [
     {
+      id: 1,
       image:
         "https://images.squarespace-cdn.com/content/v1/6035144426ec817724dd37bf/1640963848364-83X7LCNZRG3RVTGZD0GT/mehdi+black+wind.jpeg",
       title: "Song Title",
@@ -10,6 +11,7 @@ function Music() {
       duration: "3:45",
     },
     {
+      id: 2,
       image:
         "https://images.squarespace-cdn.com/content/v1/6035144426ec817724dd37bf/1640963848364-83X7LCNZRG3RVTGZD0GT/mehdi+black+wind.jpeg",
       title: "Song Title",
@@ -17,6 +19,7 @@ function Music() {
       duration: "3:45",
     },
     {
+      id: 3,
       image:
         "https://images.squarespace-cdn.com/content/v1/6035144426ec817724dd37bf/1640963848364-83X7LCNZRG3RVTGZD0GT/mehdi+black+wind.jpeg",
       title: "Song Title",
@@ -24,6 +27,7 @@ function Music() {
       duration: "3:45",
     },
     {
+      id: 4,
       image:
         "https://images.squarespace-cdn.com/content/v1/6035144426ec817724dd37bf/1640963848364-83X7LCNZRG3RVTGZD0GT/mehdi+black+wind.jpeg",
       title: "Song Title",

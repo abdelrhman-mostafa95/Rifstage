@@ -3,6 +3,7 @@ import "./App.css";
 import Navbar from "./NavBar/Navbar";
 import Home from "./Home/Home";
 import Music from "./Music/Music";
+import News from "./News/News";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Navbar />
       <Home />
       <Music />
+      <News />
     </>
   );
 }

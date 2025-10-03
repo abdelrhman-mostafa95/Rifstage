@@ -8,10 +8,6 @@ function Hero() {
     >
       <div className="absolute md:block top-[50px] left-[50px] w-72 h-72 bg-yellow-700 rounded-full blur-3xl opacity-40 animate-pulse-slow"></div>
       <div className="absolute md:block bottom-0 right-[50px] w-72 h-72 bg-yellow-700 rounded-full blur-3xl opacity-40 animate-pulse-slow"></div>
-      <div
-        className="block md:hidden absolute bottom-0 right-1/2 translate-x-1/2 
-  w-64 h-64 rounded-full blur-2xl bg-gradient-radial from-black/20 to-transparent"
-      ></div>
       <div className="relative z-10 text-center text-white max-w-2xl px-4 animate-fadeIn">
         <h1 className="text-5xl md:text-6xl font-bold mb-4 mt-10">
           Discover the World of Music in{" "}
