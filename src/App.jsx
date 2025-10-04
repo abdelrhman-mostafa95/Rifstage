@@ -4,6 +4,8 @@ import Navbar from "./NavBar/Navbar";
 import Home from "./Home/Home";
 import Music from "./Music/Music";
 import News from "./News/News";
+import Videos from "./Videos/Videos";
+import DevicesSection from "./Rules/Rules";
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
       <Home />
       <Music />
       <News />
+      <Videos />
+      <DevicesSection />
     </>
   );
 }

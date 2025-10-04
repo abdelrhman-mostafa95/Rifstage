@@ -29,15 +29,6 @@ function News() {
       author: "Author Name",
       date: "2025-10-01",
     },
-    {
-      id: 4,
-      image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvKsTcW84LpPt3aBJJo6ElM624NZKb6a1lBw&s",
-      title: "News Title",
-      description: "lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      author: "Author Name",
-      date: "2025-10-01",
-    },
   ];
 
   return (
