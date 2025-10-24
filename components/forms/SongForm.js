@@ -1,70 +1,148 @@
-// components/forms/SongForm.js
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { addSong, updateSong } from '@/functions/songs';
 
-export default function SongForm() {
-    const [title, setTitle] = useState('');
-    const [artistName, setArtistName] = useState('');
+export default function SongForm({ refreshSongs, editingSong, setEditingSong }) {
+    const [formData, setFormData] = useState({
+        title: '',
+        artist: '',
+    });
     const [audioFile, setAudioFile] = useState(null);
     const [coverFile, setCoverFile] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    const onSubmit = (e) => {
+    // Fill form when editing
+    useEffect(() => {
+        if (editingSong) {
+            setFormData({
+                title: editingSong.title || '',
+                artist: editingSong.artist || '',
+            });
+        }
+    }, [editingSong]);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('SONG_FORM_SUBMIT', { title, artistName, audioFile, coverFile });
-        alert('هذه واجهة فقط - سيتم الحفظ بعد إضافة الباك إند لاحقاً');
-        setTitle('');
-        setArtistName('');
+
+        if (!formData.title) {
+            alert('Please enter a song title.');
+            return;
+        }
+
+        if (!editingSong && !audioFile) {
+            alert('Please select an audio file.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            if (editingSong) {
+                await updateSong(editingSong.id, formData, audioFile, coverFile);
+                alert('Song updated successfully!');
+                setEditingSong(null);
+            } else {
+                await addSong(formData, audioFile, coverFile);
+                alert('Song added successfully!');
+            }
+
+            setFormData({ title: '', artist: '' });
+            setAudioFile(null);
+            setCoverFile(null);
+            refreshSongs();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancel = () => {
+        setEditingSong(null);
+        setFormData({ title: '', artist: '' });
         setAudioFile(null);
         setCoverFile(null);
     };
 
     return (
-        <form
-            onSubmit={onSubmit}
-            className="space-y-4 bg-black p-4 sm:p-6 rounded-2xl shadow-lg max-w-3xl mx-auto"
-        >
-            <input
-                className="w-full border border-gray-300 bg-zinc-900 rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-                placeholder="Song Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            />
+        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-white mb-4">
+                {editingSong ? 'Edit Song' : 'Add New Song'}
+            </h2>
 
-            <input
-                className="w-full border border-gray-300 bg-zinc-900 rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-                placeholder="Artist Name"
-                value={artistName}
-                onChange={(e) => setArtistName(e.target.value)}
-            />
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-white mb-2">Song Title *</label>
+                    <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                        required
+                    />
+                </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-                <label className="cursor-pointer bg-red-600 text-center w-full text-white px-4 py-2 rounded-full hover:bg-red-700 transition">
-                    {audioFile ? audioFile.name : 'Upload Audio File'}
+                <div>
+                    <label className="block text-white mb-2">Artist Name</label>
+                    <input
+                        type="text"
+                        value={formData.artist}
+                        onChange={(e) => setFormData({ ...formData, artist: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-white mb-2">
+                        Audio File {!editingSong ? '*' : '(optional - leave empty to keep current file)'}
+                    </label>
                     <input
                         type="file"
                         accept="audio/*"
-                        className="hidden"
-                        onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                        onChange={(e) => setAudioFile(e.target.files[0])}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500"
                     />
-                </label>
+                    {audioFile && (
+                        <p className="text-green-400 text-sm mt-1">✓ {audioFile.name}</p>
+                    )}
+                </div>
 
-                <label className="cursor-pointer bg-red-600 text-center w-full text-white px-4 py-2 rounded-full hover:bg-red-700 transition">
-                    {coverFile ? coverFile.name : 'Upload Cover Image'}
+                <div>
+                    <label className="block text-white mb-2">
+                        Cover Image (optional)
+                        {editingSong && ' - leave empty to keep current image'}
+                    </label>
                     <input
                         type="file"
                         accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
+                        onChange={(e) => setCoverFile(e.target.files[0])}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500"
                     />
-                </label>
-            </div>
+                    {coverFile && (
+                        <p className="text-green-400 text-sm mt-1">✓ {coverFile.name}</p>
+                    )}
+                </div>
 
-            <button
-                type="submit"
-                className="bg-red-600 w-full text-white px-6 py-3 rounded-full hover:bg-red-700 transition font-semibold"
-            >
-                Save Song
-            </button>
-        </form>
+                <div className="flex gap-3">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    >
+                        {loading ? 'Saving...' : editingSong ? 'Update' : 'Add'}
+                    </button>
+
+                    {editingSong && (
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="px-6 py-3 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition"
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </div>
+            </form>
+        </div>
     );
 }
