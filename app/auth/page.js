@@ -7,17 +7,17 @@ import { supabase } from '../../lib/supabase';
 
 export default function AuthPage() {
     const router = useRouter();
-    const [mode, setMode] = useState('login'); 
+    const [mode, setMode] = useState('login');
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState('');
 
-   
-    const adminEmails = ['abdelrhman.mostafa1095@gmail.com']; 
 
-  
+    const adminEmails = ['abdelrhman.mostafa1095@gmail.com'];
+
+
     useEffect(() => {
         let mounted = true;
         (async () => {
@@ -50,23 +50,34 @@ export default function AuthPage() {
         setLoading(true);
         setMsg(null);
         try {
-            const { error, data } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
-            }, { data: { full_name: displayName } });
+                options: {
+                    data: { full_name: displayName },
+                },
+            });
 
             if (error) throw error;
 
-            if (data?.user) {
-              
+            const user = data?.user;
+            if (user) {
                 const assignedRole = adminEmails.includes(email) ? 'admin' : 'user';
 
-                await supabase.from('profiles').upsert({
-                    id: data.user.id,
-                    email,
-                    full_name: displayName || null,
-                    role: assignedRole,
-                }, { returning: 'minimal' });
+                const { data: existingProfile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', user.id)
+                    .single();
+
+                if (!existingProfile) {
+                    await supabase.from('profiles').insert({
+                        id: user.id,
+                        email,
+                        full_name: displayName || null,
+                        role: assignedRole,
+                    });
+                }
             }
 
             setMsg('Account created successfully. You can now log in.');
@@ -78,6 +89,7 @@ export default function AuthPage() {
             setLoading(false);
         }
     };
+
 
     const handleLogin = async (e) => {
         e.preventDefault();
