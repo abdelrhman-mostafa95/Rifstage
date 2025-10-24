@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -10,45 +10,37 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
+    const [mounted, setMounted] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
-        let mounted = true;
-
         const fetchUser = async () => {
             const { data } = await supabase.auth.getSession();
             const session = data?.session;
-            if (session && mounted) {
-                const currentUser = session.user;
-                setUser(currentUser);
 
+            if (session) {
+                setUser(session.user);
 
                 const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', currentUser.id)
+                    .from("profiles")
+                    .select("role")
+                    .eq("id", session.user.id)
                     .single();
 
-                setRole(profile?.role || 'user');
+                setRole(profile?.role || "user");
             }
         };
 
         fetchUser();
 
-
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
                 setUser(session.user);
-                supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', session.user.id)
-                    .single()
-                    .then(({ data: profile }) => {
-                        setRole(profile?.role || 'user');
-                    });
             } else {
                 setUser(null);
                 setRole(null);
@@ -61,42 +53,22 @@ export default function Navbar() {
     const isActive = (href) => pathname === href;
     const linkClass = (href) =>
         `hover:text-yellow-400 ${isActive(href) ? "text-yellow-400" : "text-white"}`;
+
     const handleLogout = async () => {
-        try {
-            const { error } = await supabase.auth.signOut();
-
-            if (error && !error.message.includes("session")) {
-                throw error;
-            }
-
-            setUser(null);
-            setRole(null);
-            setIsOpen(false);
-            router.push("/auth");
-        } catch (error) {
-            console.error("Logout failed", error.message);
-
-            setUser(null);
-            setRole(null);
-            setIsOpen(false);
-            router.push("/auth");
-        }
+        await supabase.auth.signOut();
+        setUser(null);
+        setRole(null);
+        router.push("/auth");
+        setIsOpen(false);
     };
-
-
-
-
 
     return (
         <header className="fixed top-0 left-0 w-full z-50 backdrop-blur bg-black/60 text-white">
             <nav className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
 
+                {/* Logo */}
                 <Link href="/" className="font-bold text-yellow-400 text-xl">
-                    <img
-                        src="/rifstage-logo.png"
-                        alt="Rifstage Logo"
-                        className="inline h-10 w-30 ml-2"
-                    />
+                    <img src="/rifstage-logo.png" className="inline h-10 w-30 ml-2" />
                 </Link>
 
                 {/* Desktop Menu */}
@@ -105,41 +77,32 @@ export default function Navbar() {
                     <Link className={linkClass("/music")} href="/music">Music</Link>
                     <Link className={linkClass("/news")} href="/news">News</Link>
                     <Link className={linkClass("/videos")} href="/videos">Videos</Link>
-                    
                     <Link className={linkClass("/about")} href="/about">About</Link>
                     <Link className={linkClass("/contact")} href="/contact">Contact</Link>
-
-                    {role === "admin" && (
+                    {mounted && role === "admin" && (
                         <Link className="text-yellow-400" href="/dashboard">Dashboard</Link>
                     )}
                 </div>
 
                 {/* Right Side */}
                 <div className="flex items-center space-x-4">
-                    {user ? (
+                    {mounted && user ? (
                         <button
                             onClick={handleLogout}
-                            className="hidden md:block px-6 py-2 rounded-full 
-                            bg-red-600 text-white font-medium shadow-md 
-                            hover:bg-red-700 hover:shadow-lg hover:scale-105 
-                            transition duration-300 ease-in-out"
+                            className="hidden md:block px-6 py-2 rounded-full bg-red-600 text-white shadow-md hover:bg-red-700"
                         >
                             Logout
                         </button>
-                    ) : (
+                    ) : mounted ? (
                         <button
                             onClick={() => router.push("/auth")}
-                            className="hidden md:block px-6 py-2 rounded-full 
-                            bg-yellow-400 text-white font-medium shadow-md 
-                            hover:bg-yellow-600 hover:shadow-lg hover:scale-105 
-                            transition duration-300 ease-in-out"
+                            className="hidden md:block px-6 py-2 rounded-full bg-yellow-400 text-white shadow-md hover:bg-yellow-600"
                         >
                             Login
                         </button>
-                    )}
+                    ) : null}
 
-                    {/* Sun Icon */}
-                    <Sun className="w-6 h-6 text-yellow-500 hover:rotate-45 hover:scale-125 transition duration-300" />
+                    <Sun className="w-6 h-6 text-yellow-500" />
 
                     {/* Mobile Menu Button */}
                     <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
@@ -148,22 +111,21 @@ export default function Navbar() {
                 </div>
             </nav>
 
-            {/* Mobile Dropdown */}
+            {/* ✅ Mobile Dropdown Menu */}
             {isOpen && (
-                <div className="md:hidden bg-black/80 text-white flex flex-col items-center space-y-4 px-4 py-6 animate-slideDown">
-                    <Link className={linkClass("/")} href="/">Home</Link>
-                    <Link className={linkClass("/music")} href="/music">Music</Link>
-                    <Link className={linkClass("/news")} href="/news">News</Link>
-                    <Link className={linkClass("/videos")} href="/videos">Videos</Link>
-                  
-                    <Link className={linkClass("/about")} href="/about">About</Link>
-                    <Link className={linkClass("/contact")} href="/contact">Contact</Link>
+                <div className="md:hidden bg-black/90 text-white flex flex-col items-center space-y-4 px-4 py-6 animate-slideDown">
+                    <Link className={linkClass("/")} href="/" onClick={() => setIsOpen(false)}>Home</Link>
+                    <Link className={linkClass("/music")} href="/music" onClick={() => setIsOpen(false)}>Music</Link>
+                    <Link className={linkClass("/news")} href="/news" onClick={() => setIsOpen(false)}>News</Link>
+                    <Link className={linkClass("/videos")} href="/videos" onClick={() => setIsOpen(false)}>Videos</Link>
+                    <Link className={linkClass("/about")} href="/about" onClick={() => setIsOpen(false)}>About</Link>
+                    <Link className={linkClass("/contact")} href="/contact" onClick={() => setIsOpen(false)}>Contact</Link>
 
-                    {role === "admin" && (
-                        <Link className="text-yellow-400" href="/dashboard">Dashboard</Link>
+                    {mounted && role === "admin" && (
+                        <Link className="text-yellow-400" href="/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
                     )}
 
-                    {user ? (
+                    {mounted && user ? (
                         <button onClick={handleLogout} className="text-red-500">Logout</button>
                     ) : (
                         <button
