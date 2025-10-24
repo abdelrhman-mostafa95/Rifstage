@@ -10,8 +10,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log('KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
       <Artist />
       <Music />
       <News />
