@@ -13,7 +13,7 @@ export default function Navbar() {
     const router = useRouter();
     const pathname = usePathname();
 
- 
+
     useEffect(() => {
         let mounted = true;
 
@@ -24,7 +24,7 @@ export default function Navbar() {
                 const currentUser = session.user;
                 setUser(currentUser);
 
-             
+
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('role')
@@ -37,7 +37,7 @@ export default function Navbar() {
 
         fetchUser();
 
-     
+
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
                 setUser(session.user);
@@ -61,17 +61,36 @@ export default function Navbar() {
     const isActive = (href) => pathname === href;
     const linkClass = (href) =>
         `hover:text-yellow-400 ${isActive(href) ? "text-yellow-400" : "text-white"}`;
-
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        setIsOpen(false);
-        router.push("/auth");
+        try {
+            const { error } = await supabase.auth.signOut();
+
+            if (error && !error.message.includes("session")) {
+                throw error;
+            }
+
+            setUser(null);
+            setRole(null);
+            setIsOpen(false);
+            router.push("/auth");
+        } catch (error) {
+            console.error("Logout failed", error.message);
+
+            setUser(null);
+            setRole(null);
+            setIsOpen(false);
+            router.push("/auth");
+        }
     };
+
+
+
+
 
     return (
         <header className="fixed top-0 left-0 w-full z-50 backdrop-blur bg-black/60 text-white">
             <nav className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-               
+
                 <Link href="/" className="font-bold text-yellow-400 text-xl">
                     <img
                         src="/rifstage-logo.png"
@@ -86,7 +105,7 @@ export default function Navbar() {
                     <Link className={linkClass("/music")} href="/music">Music</Link>
                     <Link className={linkClass("/news")} href="/news">News</Link>
                     <Link className={linkClass("/videos")} href="/videos">Videos</Link>
-                    <Link className={linkClass("/playlists")} href="/playlists">Playlists</Link>
+                    
                     <Link className={linkClass("/about")} href="/about">About</Link>
                     <Link className={linkClass("/contact")} href="/contact">Contact</Link>
 
@@ -136,7 +155,7 @@ export default function Navbar() {
                     <Link className={linkClass("/music")} href="/music">Music</Link>
                     <Link className={linkClass("/news")} href="/news">News</Link>
                     <Link className={linkClass("/videos")} href="/videos">Videos</Link>
-                    <Link className={linkClass("/playlists")} href="/playlists">Playlists</Link>
+                  
                     <Link className={linkClass("/about")} href="/about">About</Link>
                     <Link className={linkClass("/contact")} href="/contact">Contact</Link>
 

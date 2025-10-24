@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { FaPlay, FaPause } from "react-icons/fa";
 
-
 export default function SongCard({ song }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -10,21 +9,29 @@ export default function SongCard({ song }) {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        if (song.audio_url) {
-            audioRef.current = new Audio(song.audio_url);
+        if (!song.audio_url) return;
 
-            audioRef.current.addEventListener('loadedmetadata', () => {
-                setDuration(audioRef.current.duration);
-            });
+        // إنشاء الـ audio element مرة واحدة
+        audioRef.current = new Audio(song.audio_url);
 
-            audioRef.current.addEventListener('timeupdate', () => {
-                setCurrentTime(audioRef.current.currentTime);
-            });
-        }
+        const audioEl = audioRef.current;
+
+        const handleLoadedMetadata = () => {
+            if (audioEl) setDuration(audioEl.duration);
+        };
+
+        const handleTimeUpdate = () => {
+            if (audioEl) setCurrentTime(audioEl.currentTime);
+        };
+
+        audioEl.addEventListener('loadedmetadata', handleLoadedMetadata);
+        audioEl.addEventListener('timeupdate', handleTimeUpdate);
 
         return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
+            if (audioEl) {
+                audioEl.pause();
+                audioEl.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                audioEl.removeEventListener('timeupdate', handleTimeUpdate);
                 audioRef.current = null;
             }
         };
@@ -38,6 +45,7 @@ export default function SongCard({ song }) {
     };
 
     const handleSeek = (e) => {
+        if (!audioRef.current) return;
         const value = Number(e.target.value);
         audioRef.current.currentTime = value;
         setCurrentTime(value);
@@ -64,7 +72,6 @@ export default function SongCard({ song }) {
 
             {song.audio_url ? (
                 <div className="w-full">
-                    {/* Buttons */}
                     <button
                         onClick={handlePlayPause}
                         className="mt-2 bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition w-full flex items-center justify-center gap-2"
@@ -72,8 +79,6 @@ export default function SongCard({ song }) {
                         {isPlaying ? <FaPause size={18} /> : <FaPlay size={18} />}
                     </button>
 
-
-                    {/* Progress Bar */}
                     <div className="w-full mt-3">
                         <input
                             type="range"
@@ -83,7 +88,6 @@ export default function SongCard({ song }) {
                             onChange={handleSeek}
                             className="w-full"
                         />
-
                         <div className="flex justify-between text-gray-400 text-sm mt-1">
                             <span>{formatTime(currentTime)}</span>
                             <span>{formatTime(duration)}</span>

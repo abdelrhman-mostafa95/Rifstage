@@ -1,60 +1,73 @@
-'use client';
-import { useState } from 'react';
+"use client";
 
-export default function PostForm() {
-    const [title, setTitle] = useState('');
-    const [excerpt, setExcerpt] = useState('');
-    const [content, setContent] = useState('');
-    const [cover, setCover] = useState(null);
+import { useState } from "react";
+import { addNews } from "../../lib/supabaseStorage";
 
-    const submit = (e) => {
+export default function PostForm({ onSuccess }) {
+    const [title, setTitle] = useState("");
+    const [slug, setSlug] = useState("");
+    const [content, setContent] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('POST_FORM_SUBMIT', { title, excerpt, content, cover });
-        alert('واجهة فقط - سيتم النشر لاحقاً');
-        setTitle('');
-        setExcerpt('');
-        setContent('');
-        setCover(null);
+        setLoading(true);
+
+        try {
+            await addNews({
+                title,
+                slug,
+                content,
+                cover_image_url: null, // هنعدل دي لما نضيف upload
+            });
+
+            setTitle("");
+            setSlug("");
+            setContent("");
+
+            if (onSuccess) onSuccess();
+
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <form onSubmit={submit} className="space-y-4 bg-black p-3 rounded-2xl shadow-md max-w-3xl mx-auto">
+        <form onSubmit={handleSubmit} className="bg-black p-4 rounded-2xl space-y-3">
             <input
-                className="w-full border border-black rounded-2xl p-1 focus:outline-none focus:ring-2 focus:ring-black-600 transition bg-zinc-900"
-                placeholder="Post Title"
+                type="text"
+                placeholder="Title"
+                className="w-full p-2 rounded-md bg-gray-900 text-white"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                required
             />
-            <textarea
-                className="w-full border border-black bg-zinc-900 rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-                placeholder="Excerpt"
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                rows={3}
+
+            <input
+                type="text"
+                placeholder="Slug (news-title-example)"
+                className="w-full p-2 rounded-md bg-gray-900 text-white"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                required
             />
-            <div className="flex items-center gap-3">
-                <label className="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition">
-                    {cover ? cover.name : 'Upload Cover Image'}
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setCover(e.target.files?.[0] || null)}
-                    />
-                </label>
-            </div>
+
             <textarea
-                className="w-full border border-gray-900 bg-zinc-900 rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
                 placeholder="Content"
+                className="w-full p-2 rounded-md bg-gray-900 text-white h-32"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                rows={6}
+                required
             />
+
             <button
                 type="submit"
-                className="bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition font-semibold"
+                disabled={loading}
+                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition w-full"
             >
-                Publish Post
+                {loading ? "Saving..." : "Add News"}
             </button>
         </form>
     );
