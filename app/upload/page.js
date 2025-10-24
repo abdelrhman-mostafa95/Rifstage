@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { createSong } from '@/functions/songs';
+import { addSong } from "@/functions/songs";
 import { useRouter } from 'next/navigation';
 
 export default function UploadPage() {
@@ -23,7 +23,7 @@ export default function UploadPage() {
 
         setLoading(true);
         try {
-            await createSong(formData, audioFile, coverFile);
+            await addSong(formData, audioFile, coverFile);
             alert('Song uploaded successfully!');
             router.push('/music');
         } catch (error) {
