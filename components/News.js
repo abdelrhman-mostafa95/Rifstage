@@ -71,10 +71,22 @@ export default function News() {
         </div>
     );
 
+    // 🌀 Loading Spinner Section
     if (loading) {
-        return <div className="text-center text-white p-10">Loading news...</div>;
+        return (
+            <section className="bg-gray-900 flex flex-col items-center justify-center py-20 text-white">
+                <div className="relative">
+                    <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-yellow-400 font-bold text-base">R</span>
+                    </div>
+                </div>
+                <p className="mt-4 text-gray-400 text-sm animate-pulse">
+                    Loading latest news...
+                </p>
+            </section>
+        );
     }
-
     return (
         <section className="bg-gray-900">
             {/* ---- Header ---- */}

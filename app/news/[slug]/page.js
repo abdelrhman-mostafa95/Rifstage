@@ -36,14 +36,48 @@ export default function NewsDetailsPage() {
 
     const isArabic = (text) => /[\u0600-\u06FF]/.test(text);
 
-    if (loading)
-        return <div className="text-center text-white p-10">Loading...</div>;
-    if (!post)
-        return <div className="text-center text-white p-10">Post not found</div>;
+    /* ==========================
+       🌀 Loading Screen
+    ========================== */
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-black">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-300 text-lg animate-pulse">
+                        Loading news details...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    /* ==========================
+       ⚠️ Post Not Found
+    ========================== */
+    if (!post) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-black">
+                <div className="text-center text-gray-300">
+                    <h2 className="text-2xl font-semibold mb-2">Post Not Found</h2>
+                    <p className="mb-6">The news you’re looking for doesn’t exist.</p>
+                    <button
+                        onClick={() => router.push("/news")}
+                        className="px-4 py-2 rounded-full bg-yellow-500 text-black font-medium hover:bg-yellow-400 transition"
+                    >
+                        Back to News
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const direction = isArabic(post.content) ? "rtl" : "ltr";
     const align = isArabic(post.content) ? "text-right" : "text-left";
 
+    /* ==========================
+       📰 News Details
+    ========================== */
     return (
         <div className="min-h-screen text-white bg-black">
             {/* ===== صورة الغلاف ===== */}
