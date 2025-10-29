@@ -1,30 +1,52 @@
 import { supabase } from '../lib/supabase';
 
-// ✅ دالة رفع الملف
+/* ===================================================
+   ✅ دالة رفع الملف (وترجع: { url, path })
+=================================================== */
 const uploadFile = async (file, folder) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${folder}/${fileName}`;
+    const filePath = `${folder}/${fileName}`; // audio/... أو covers/...
 
-    const { error } = await supabase.storage
-        .from('songs')
+    const { error: uploadError } = await supabase.storage
+        .from('songs') // اسم الـ bucket
         .upload(filePath, file);
 
-    if (error) throw error;
+    if (uploadError) throw uploadError;
 
-    // الحصول على الـ public URL
+    // ✅ الحصول على الـ public URL
     const { data } = supabase.storage.from('songs').getPublicUrl(filePath);
-    return data.publicUrl;
+
+    return {
+        url: data.publicUrl,
+        path: filePath, // نحفظ المسار داخل الـ bucket
+    };
 };
 
-// ✅ إضافة أغنية جديدة
+/* ===================================================
+   ✅ إضافة أغنية جديدة
+=================================================== */
 export const addSong = async (songData, audioFile, coverFile) => {
     try {
-        // رفع الملفات والحصول على الـ URLs
-        const audioUrl = audioFile ? await uploadFile(audioFile, 'audio') : null;
-        const coverUrl = coverFile ? await uploadFile(coverFile, 'covers') : null;
+        let audioUrl = null;
+        let audioPath = null;
+        let coverUrl = null;
+        let coverPath = null;
 
-        // حفظ البيانات في قاعدة البيانات
+        // ✅ رفع الملفات إذا وجدت
+        if (audioFile) {
+            const audio = await uploadFile(audioFile, 'audio');
+            audioUrl = audio.url;
+            audioPath = audio.path;
+        }
+
+        if (coverFile) {
+            const cover = await uploadFile(coverFile, 'covers');
+            coverUrl = cover.url;
+            coverPath = cover.path;
+        }
+
+        // ✅ حفظ البيانات في قاعدة البيانات
         const { data, error } = await supabase
             .from('songs')
             .insert([
@@ -33,37 +55,64 @@ export const addSong = async (songData, audioFile, coverFile) => {
                     artist: songData.artist,
                     audio_url: audioUrl,
                     cover_url: coverUrl,
-                }
+                    storage_path: audioPath,
+                    cover_path: coverPath,
+                },
             ])
             .select();
 
         if (error) throw error;
         return data[0];
     } catch (error) {
-        console.error('Error adding song:', error);
+        console.error('❌ Error adding song:', error);
         throw error;
     }
 };
 
-// ✅ تحديث أغنية موجودة
+/* ===================================================
+   ✅ تحديث أغنية موجودة (مع حذف الملفات القديمة من فولدراتها الصحيحة)
+=================================================== */
 export const updateSong = async (id, songData, audioFile, coverFile) => {
     try {
-        // البيانات الأساسية للتحديث
+        // جلب بيانات الأغنية القديمة
+        const oldSong = await getSong(id);
+
         const updateData = {
             title: songData.title,
             artist: songData.artist,
         };
 
-        // رفع ملف صوتي جديد إذا تم اختياره
+        // ✅ لو فيه ملف صوتي جديد نرفعه ونحذف القديم من audio/
         if (audioFile) {
-            updateData.audio_url = await uploadFile(audioFile, 'audio');
+            if (oldSong.storage_path && oldSong.storage_path.startsWith('audio/')) {
+                const { error: audioDeleteError } = await supabase.storage
+                    .from('songs')
+                    .remove([oldSong.storage_path]);
+                if (audioDeleteError)
+                    console.warn('⚠️ Error deleting old audio:', audioDeleteError);
+            }
+
+            const audio = await uploadFile(audioFile, 'audio');
+            updateData.audio_url = audio.url;
+            updateData.storage_path = audio.path;
         }
 
-        // رفع صورة غلاف جديدة إذا تم اختيارها
+        // ✅ لو فيه غلاف جديد نرفعه ونحذف القديم من covers/
         if (coverFile) {
-            updateData.cover_url = await uploadFile(coverFile, 'covers');
+            if (oldSong.cover_path && oldSong.cover_path.startsWith('covers/')) {
+                const { error: coverDeleteError } = await supabase.storage
+                    .from('songs')
+                    .remove([oldSong.cover_path]);
+                if (coverDeleteError)
+                    console.warn('⚠️ Error deleting old cover:', coverDeleteError);
+            }
+
+            const cover = await uploadFile(coverFile, 'covers');
+            updateData.cover_url = cover.url;
+            updateData.cover_path = cover.path;
         }
 
+        // ✅ تحديث البيانات في الجدول
         const { data, error } = await supabase
             .from('songs')
             .update(updateData)
@@ -73,12 +122,14 @@ export const updateSong = async (id, songData, audioFile, coverFile) => {
         if (error) throw error;
         return data[0];
     } catch (error) {
-        console.error('Error updating song:', error);
+        console.error('❌ Error updating song:', error);
         throw error;
     }
 };
 
-// ✅ جلب كل الأغاني
+/* ===================================================
+   ✅ جلب كل الأغاني
+=================================================== */
 export const getSongs = async () => {
     const { data, error } = await supabase
         .from('songs')
@@ -89,7 +140,9 @@ export const getSongs = async () => {
     return data || [];
 };
 
-// ✅ جلب أغنية واحدة
+/* ===================================================
+   ✅ جلب أغنية واحدة
+=================================================== */
 export const getSong = async (id) => {
     const { data, error } = await supabase
         .from('songs')
@@ -101,12 +154,58 @@ export const getSong = async (id) => {
     return data;
 };
 
-// ✅ حذف أغنية
-export const deleteSong = async (id) => {
-    const { error } = await supabase
-        .from('songs')
-        .delete()
-        .eq('id', id);
+/* ===================================================
+   ✅ حذف أغنية (من الجدول + من فولدرات audio / covers)
+=================================================== */
+const cleanPath = (url) => {
+    if (!url) return null;
+    try {
+        // مثال URL: https://xyz.supabase.co/storage/v1/object/public/songs/audio/12345.mp3
+        const parts = url.split('/storage/v1/object/public/songs/');
+        return parts.length > 1 ? parts[1] : url; // النتيجة: audio/12345.mp3
+    } catch {
+        return url;
+    }
+};
 
-    if (error) throw error;
+// 🗑️ حذف أغنية من القاعدة والـ storage معًا
+export const deleteSong = async (id) => {
+    try {
+        // جلب بيانات الأغنية قبل حذفها
+        const { data: song, error: fetchError } = await supabase
+            .from('songs')
+            .select('audio_url, cover_url, storage_path, cover_path')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        // مسح الملفات من Supabase Storage
+        const filesToDelete = [];
+
+        if (song?.audio_url) filesToDelete.push(cleanPath(song.audio_url));
+        if (song?.cover_url) filesToDelete.push(cleanPath(song.cover_url));
+        if (song?.storage_path) filesToDelete.push(song.storage_path);
+        if (song?.cover_path) filesToDelete.push(song.cover_path);
+
+        for (const filePath of filesToDelete) {
+            console.log("🧾 trying to delete:", filePath);
+            if (filePath) {
+                const { error: deleteError } = await supabase.storage
+                    .from('songs')
+                    .remove([filePath]);
+
+                if (deleteError) console.warn(`⚠️ فشل حذف الملف: ${filePath}`, deleteError);
+            }
+        }
+
+        // حذف الأغنية من الجدول
+        const { error } = await supabase.from('songs').delete().eq('id', id);
+        if (error) throw error;
+
+        console.log("✅ تم حذف الأغنية وجميع ملفاتها بنجاح");
+    } catch (error) {
+        console.error('Error deleting song:', error);
+        throw error;
+    }
 };

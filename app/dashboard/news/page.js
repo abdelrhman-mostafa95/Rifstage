@@ -6,6 +6,7 @@ import { getNews, deleteNews } from "../../../lib/supabaseStorage";
 
 export default function NewsDashboard() {
     const [posts, setPosts] = useState([]);
+    const [editItem, setEditItem] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -25,10 +26,12 @@ export default function NewsDashboard() {
         <div className="space-y-6">
             <h1 className="text-2xl font-bold mb-4 text-white">News</h1>
 
-            {/* Post Form */}
-            <PostForm onSuccess={loadData} />
+            <PostForm
+                onSuccess={loadData}
+                editItem={editItem}
+                onCancelEdit={() => setEditItem(null)}
+            />
 
-            {/* Posts List */}
             <div className="space-y-3 mt-6">
                 {posts.map((post) => (
                     <div
@@ -38,7 +41,10 @@ export default function NewsDashboard() {
                         <span className="font-medium text-white">{post.title}</span>
 
                         <div className="flex gap-2">
-                            <button className="px-3 py-1 text-sm rounded-full bg-gray-900 text-white hover:bg-gray-300 transition">
+                            <button
+                                onClick={() => setEditItem(post)}
+                                className="px-3 py-1 text-sm rounded-full bg-gray-900 text-white hover:bg-gray-300 transition"
+                            >
                                 Edit
                             </button>
                             <button

@@ -24,29 +24,29 @@ export default function SongsDashboard() {
     }, []);
 
     const handleDelete = async (id) => {
-        if (!confirm('هل أنت متأكد من حذف هذه الأغنية؟')) return;
+        if (!confirm('Are you sure you want to delete this song?')) return;
         try {
             await deleteSong(id);
-            alert('تم حذف الأغنية بنجاح!');
+            alert('Song deleted successfully!');
             fetchSongs();
         } catch (error) {
             console.error('Error deleting song:', error.message);
-            alert('فشل حذف الأغنية');
+            alert('Failed to delete the song.');
         }
     };
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold mb-4 text-white">الأغاني</h1>
+            <h1 className="text-2xl font-bold mb-4 text-white">Songs</h1>
 
             <SongForm refreshSongs={fetchSongs} />
 
             <div className="mt-6">
-                <h2 className="font-semibold mb-3 text-lg text-white">قائمة الأغاني</h2>
+                <h2 className="font-semibold mb-3 text-lg text-white">Song List</h2>
                 {loading ? (
-                    <p className="text-white">جاري التحميل...</p>
+                    <p className="text-white">Loading...</p>
                 ) : songs.length === 0 ? (
-                    <p className="text-gray-400">لا توجد أغاني حتى الآن.</p>
+                    <p className="text-gray-400">No songs available yet.</p>
                 ) : (
                     <ul className="space-y-3 text-white">
                         {songs.map((song) => (
