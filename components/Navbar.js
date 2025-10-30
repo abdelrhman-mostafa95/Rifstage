@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Sun, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 export default function Navbar() {
@@ -103,7 +103,7 @@ export default function Navbar() {
                         </button>
                     ) : null}
 
-                    <Sun className="w-6 h-6 text-yellow-500" />
+                    
 
                     {/* Mobile Menu Button */}
                     <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
