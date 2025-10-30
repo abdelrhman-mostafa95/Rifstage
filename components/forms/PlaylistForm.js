@@ -50,7 +50,7 @@ export default function PlaylistForm({ onSuccess, editItem, onCancelEdit }) {
     return (
         <div className="bg-gray-800 rounded-lg p-6 mb-6">
             <h2 className="text-xl font-bold text-white mb-4">
-                {editItem ? "🎧 Edit Playlist" : "➕ Add New Playlist"}
+                {editItem ? "Edit Playlist" : "Add New Playlist"}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
