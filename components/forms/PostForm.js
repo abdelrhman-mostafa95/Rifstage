@@ -11,7 +11,6 @@ export default function PostForm({ onSuccess, editItem, onCancelEdit }) {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // ✅ لما المستخدم يضغط Edit في NewsDashboard
     useEffect(() => {
         if (editItem) {
             setTitle(editItem.title || "");
@@ -25,7 +24,6 @@ export default function PostForm({ onSuccess, editItem, onCancelEdit }) {
         }
     }, [editItem]);
 
-    // ✅ تحقق من صلاحية slug
     const isValidSlug = (value) => /^[a-z0-9-]+$/.test(value);
 
     const handleSubmit = async (e) => {
@@ -40,19 +38,14 @@ export default function PostForm({ onSuccess, editItem, onCancelEdit }) {
         }
 
         setLoading(true);
-
         try {
             if (editItem) {
-                // ✏️ تحديث خبر موجود
                 await updateNews(editItem.id, { title, slug, content }, imageFile);
             } else {
-                // 🆕 إضافة خبر جديد
                 await addNews({ title, slug, content }, imageFile);
             }
 
-            // ✅ تحديث القائمة بعد الحفظ
             onSuccess?.();
-            // 🔄 إلغاء وضع التعديل بعد الحفظ
             onCancelEdit?.();
         } catch (error) {
             console.error("Error saving news:", error);
@@ -61,81 +54,99 @@ export default function PostForm({ onSuccess, editItem, onCancelEdit }) {
         }
     };
 
+    const handleCancel = () => {
+        onCancelEdit?.();
+        setTitle("");
+        setSlug("");
+        setContent("");
+        setImageFile(null);
+    };
+
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="bg-black p-4 rounded-2xl space-y-3 border border-gray-800"
-        >
-            <h2 className="text-white font-semibold text-lg mb-3">
-                {editItem ? "✏️ Edit News" : "📰 Add New News"}
+        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-bold text-white mb-4">
+                {editItem ? "Edit News" : "Add New News"}
             </h2>
 
-            <input
-                type="text"
-                placeholder="Title"
-                className="w-full p-2 rounded-md bg-gray-900 text-white"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-            />
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-white mb-2">Title *</label>
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                        required
+                    />
+                </div>
 
-            <input
-                type="text"
-                placeholder="Slug (only English letters, numbers, and -)"
-                className={`w-full p-2 rounded-md bg-gray-900 text-white ${errorMsg ? "border border-red-500" : ""}`}
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase())}
-                required
-            />
+                <div>
+                    <label className="block text-white mb-2">
+                        Slug (only lowercase letters, numbers, and -) *
+                    </label>
+                    <input
+                        type="text"
+                        value={slug}
+                        onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                        className={`w-full px-4 py-2 rounded-lg bg-gray-700 text-white border ${errorMsg ? "border-red-500" : "border-gray-600"
+                            } focus:border-red-500 focus:outline-none`}
+                        required
+                    />
+                    {errorMsg && (
+                        <p className="text-red-400 text-sm mt-1">{errorMsg}</p>
+                    )}
+                </div>
 
-            {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
+                <div>
+                    <label className="block text-white mb-2">Content *</label>
+                    <textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none h-32"
+                        required
+                    />
+                </div>
 
-            <textarea
-                placeholder="Content"
-                className="w-full p-2 rounded-md bg-gray-900 text-white h-32"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-            />
+                <div>
+                    <label className="block text-white mb-2">
+                        Cover Image (optional)
+                        {editItem && " - leave empty to keep current image"}
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files[0])}
+                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500"
+                    />
+                    {imageFile && (
+                        <p className="text-green-400 text-sm mt-1">✓ {imageFile.name}</p>
+                    )}
+                </div>
 
-            <div className="space-y-2">
-                <label className="text-gray-300 text-sm">Cover Image (optional):</label>
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files[0])}
-                    className="w-full text-sm text-gray-300"
-                />
-                {imageFile && (
-                    <p className="text-xs text-gray-400">
-                        Selected: {imageFile.name}
-                    </p>
-                )}
-            </div>
-
-            <div className="flex gap-3">
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition w-full sm:w-auto"
-                >
-                    {loading
-                        ? "Saving..."
-                        : editItem
-                            ? "Update News"
-                            : "Add News"}
-                </button>
-
-                {editItem && (
+                <div className="flex gap-3">
                     <button
-                        type="button"
-                        onClick={onCancelEdit}
-                        className="px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-600 transition"
+                        type="submit"
+                        disabled={loading}
+                        className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
-                        Cancel
+                        {loading
+                            ? "Saving..."
+                            : editItem
+                                ? "Update News"
+                                : "Add News"}
                     </button>
-                )}
-            </div>
-        </form>
+
+                    {editItem && (
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="px-6 py-3 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition"
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </div>
+            </form>
+        </div>
     );
 }
