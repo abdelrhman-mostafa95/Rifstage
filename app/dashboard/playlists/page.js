@@ -58,6 +58,9 @@ export default function PlaylistsDashboard() {
                                     <p className="text-gray-400 text-sm">
                                         {playlist.description || "No description"}
                                     </p>
+                                    <p className="text-gray-400 text-xs">
+                                        🎧 {playlist.producer_name || "Unknown"} — 🗓 {playlist.release_date || "N/A"}
+                                    </p>
                                 </div>
                             </div>
 
