@@ -107,12 +107,19 @@ export default function PlaylistsSection({
                                     {playlist.description}
                                 </p>
                             )}
-
-                            {playlist.created_at && (
-                                <p className="text-xs text-gray-400">
-                                    Added on {formatDate(playlist.created_at)}
+                            {playlist.producer_name && (
+                                <p className="text-gray-300 text-sm mb-3 line-clamp-2">
+                                    {playlist.producer_name}
                                 </p>
                             )}
+
+                            {playlist.release_date
+                                && (
+                                    <p className="text-xs text-gray-400">
+                                        Added on {formatDate(playlist.release_date
+                                        )}
+                                    </p>
+                                )}
 
                             {/* ✅ زر التشغيل */}
                             <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">

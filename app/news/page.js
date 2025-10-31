@@ -81,14 +81,16 @@ export default function NewsPage() {
                             {/* Info */}
                             <div className="p-5 space-y-3">
                                 <h2 className="text-2xl font-bold group-hover:text-yellow-400 transition">
-                                    {post.content.replace(/<[^>]+>/g, '')}
+                                    {post.title}
                                 </h2>
 
                                 <p className="text-gray-400 text-sm">
                                     {new Date(post.created_at).toLocaleDateString()}
                                 </p>
 
-                                <p className="text-gray-300 line-clamp-2">{post.content}</p>
+                                <p className="text-gray-300 line-clamp-2">{post.content
+                                    .replace(/<[^>]+>/g, '')  // تشيل كل الـ HTML tags
+                                    .slice(0, 150) + '...'}</p>
 
                                 <button className="mt-2 px-4 py-2 rounded-full text-sm font-medium bg-yellow-500 text-black group-hover:bg-yellow-400 transition">
                                     Read More →
