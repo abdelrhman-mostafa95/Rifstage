@@ -81,7 +81,7 @@ export default function NewsPage() {
                             {/* Info */}
                             <div className="p-5 space-y-3">
                                 <h2 className="text-2xl font-bold group-hover:text-yellow-400 transition">
-                                    {post.title}
+                                    {post.content.replace(/<[^>]+>/g, '')}
                                 </h2>
 
                                 <p className="text-gray-400 text-sm">
