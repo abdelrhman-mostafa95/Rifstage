@@ -75,7 +75,7 @@ export default function Navbar() {
                 <div className="hidden md:flex space-x-6 text-sm">
                     <Link className={linkClass("/")} href="/">Home</Link>
                     <Link className={linkClass("/music")} href="/music">Music</Link>
-                    <Link className={linkClass("/playlists")} href="/playlists">Playlists</Link>
+                    {/* <Link className={linkClass("/playlists")} href="/playlists">Playlists</Link> */}
                     <Link className={linkClass("/news")} href="/news">News</Link>
                     <Link className={linkClass("/videos")} href="/videos">Videos</Link>
                     <Link className={linkClass("/about")} href="/about">About</Link>
@@ -117,7 +117,7 @@ export default function Navbar() {
                 <div className="md:hidden bg-black/90 text-white flex flex-col items-center space-y-4 px-4 py-6 animate-slideDown">
                     <Link className={linkClass("/")} href="/" onClick={() => setIsOpen(false)}>Home</Link>
                     <Link className={linkClass("/music")} href="/music" onClick={() => setIsOpen(false)}>Music</Link>
-                    <Link className={linkClass("/playlists")} href="/playlists" onClick={() => setIsOpen(false)}>Playlists</Link>
+                    {/* <Link className={linkClass("/playlists")} href="/playlists" onClick={() => setIsOpen(false)}>Playlists</Link> */}
                     <Link className={linkClass("/news")} href="/news" onClick={() => setIsOpen(false)}>News</Link>
                     <Link className={linkClass("/videos")} href="/videos" onClick={() => setIsOpen(false)}>Videos</Link>
                     <Link className={linkClass("/about")} href="/about" onClick={() => setIsOpen(false)}>About</Link>

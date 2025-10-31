@@ -119,11 +119,10 @@ export default function NewsDetailsPage() {
             {/* ===== المحتوى ===== */}
             <div className="max-w-4xl mx-auto px-6 md:px-10 py-20">
                 <div
-                    className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl leading-8 text-gray-200 whitespace-pre-line ${align}`}
+                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-xl leading-8 text-gray-200 prose prose-invert max-w-none"
                     dir={direction}
-                >
-                    {post.content}
-                </div>
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                />
             </div>
         </div>
     );
