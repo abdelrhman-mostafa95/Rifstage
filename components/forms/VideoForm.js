@@ -4,31 +4,39 @@ import { useState } from 'react';
 import { addVideo } from '../../lib/supabaseStorage';
 
 export default function VideoForm({ onAdd }) {
-    const [title, setTitle] = useState('');
-    const [youtubeUrl, setYoutubeUrl] = useState('');
-    const [thumbnailUrl, setThumbnailUrl] = useState('');
+    const [form, setForm] = useState({
+        title: '',
+        youtubeUrl: '',
+        thumbnailUrl: '',
+        description: '',
+        duration: '',
+        views: '',
+        createdText: '', // إضافة حقل created_text
+    });
     const [loading, setLoading] = useState(false);
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!title || !youtubeUrl) return alert('Title and YouTube URL are required');
-
+        if (!form.title || !form.youtubeUrl) return alert('Title and URL required');
         setLoading(true);
         try {
             await addVideo({
-                title,
-                youtube_url: youtubeUrl,
-                thumbnail_url: thumbnailUrl || null,
+                title: form.title,
+                youtube_url: form.youtubeUrl,
+                thumbnail_url: form.thumbnailUrl || null,
+                description: form.description || '',
+                duration: form.duration || '',
+                views: form.views || '0',
+                created_text: form.createdText || '', // أخذ القيمة من الفورم
             });
-
-            setTitle('');
-            setYoutubeUrl('');
-            setThumbnailUrl('');
-
+            setForm({ title: '', youtubeUrl: '', thumbnailUrl: '', description: '', duration: '', views: '', createdText: '' });
             if (onAdd) onAdd();
-        } catch (error) {
-            console.error(error);
-            alert('Error adding video: ' + error.message);
+        } catch (err) {
+            alert('Error: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -39,47 +47,34 @@ export default function VideoForm({ onAdd }) {
             <h2 className="text-xl font-bold text-white mb-4">Add New Video</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-white mb-2">Video Title *</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
-                        required
-                    />
-                </div>
+                {[
+                    { label: 'Video Title *', name: 'title' },
+                    { label: 'YouTube URL *', name: 'youtubeUrl' },
+                    { label: 'Thumbnail URL', name: 'thumbnailUrl' },
+                    { label: 'Description', name: 'description' },
+                    { label: 'Duration (e.g. 4:23)', name: 'duration' },
+                    { label: 'Views', name: 'views' },
+                    { label: 'Created Text', name: 'createdText' }, // حقل جديد
+                ].map((f) => (
+                    <div key={f.name}>
+                        <label className="block text-white mb-2">{f.label}</label>
+                        <input
+                            type="text"
+                            name={f.name}
+                            value={form[f.name]}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
+                        />
+                    </div>
+                ))}
 
-                <div>
-                    <label className="block text-white mb-2">YouTube URL *</label>
-                    <input
-                        type="text"
-                        value={youtubeUrl}
-                        onChange={(e) => setYoutubeUrl(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-white mb-2">Thumbnail URL (optional)</label>
-                    <input
-                        type="text"
-                        value={thumbnailUrl}
-                        onChange={(e) => setThumbnailUrl(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-red-500 focus:outline-none"
-                    />
-                </div>
-
-                <div className="flex gap-3">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                    >
-                        {loading ? 'Adding...' : 'Add Video'}
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition"
+                >
+                    {loading ? 'Adding...' : 'Add Video'}
+                </button>
             </form>
         </div>
     );
