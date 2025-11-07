@@ -14,9 +14,7 @@ export default function AuthPage() {
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState('');
 
-
     const adminEmails = ['abdelrhman.mostafa1095@gmail.com'];
-
 
     useEffect(() => {
         let mounted = true;
@@ -24,13 +22,7 @@ export default function AuthPage() {
             const { data } = await supabase.auth.getSession();
             const session = data?.session;
             if (session && mounted) {
-                const user = session.user;
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-                const role = profile?.role || 'user';
+                const role = session.user.user_metadata?.role || 'user';
                 router.replace(role === 'admin' ? '/dashboard' : '/');
             }
         })();
@@ -50,11 +42,16 @@ export default function AuthPage() {
         setLoading(true);
         setMsg(null);
         try {
+            const assignedRole = adminEmails.includes(email) ? 'admin' : 'user';
+
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: { full_name: displayName },
+                    data: {
+                        full_name: displayName,
+                        role: assignedRole, // حفظ role في metadata
+                    },
                 },
             });
 
@@ -62,8 +59,7 @@ export default function AuthPage() {
 
             const user = data?.user;
             if (user) {
-                const assignedRole = adminEmails.includes(email) ? 'admin' : 'user';
-
+                // إدخال بيانات إضافية في جدول profiles (اختياري)
                 const { data: existingProfile } = await supabase
                     .from('profiles')
                     .select('id')
@@ -90,40 +86,44 @@ export default function AuthPage() {
         }
     };
 
-
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMsg(null);
         try {
-            const { error, data } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (error) throw error;
 
-            const user = data?.user;
+            // بعد تسجيل الدخول، نجيب بيانات المستخدم الكاملة
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            if (userError) throw userError;
+
+            const user = userData?.user;
             if (!user) {
                 setMsg('Login failed');
                 setLoading(false);
                 return;
             }
 
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single();
+            const role = user.user_metadata?.role || 'user';
+            console.log("Logged in as:", role);
 
-            const role = profile?.role || 'user';
-            router.replace(role === 'admin' ? '/dashboard' : '/');
+            if (role === 'admin') {
+                router.replace('/dashboard');
+            } else {
+                router.replace('/');
+            }
         } catch (err) {
             setMsg(err?.message || 'Something went wrong during login');
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 p-4">
